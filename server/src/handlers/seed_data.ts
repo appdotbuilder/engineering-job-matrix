@@ -1,4 +1,6 @@
 import { type CreateEngineeringLevelInput, type CreateLevelCriterionInput } from '../schema';
+import { db } from '../db';
+import { engineeringLevelsTable, levelCriteriaTable } from '../db/schema';
 
 // Sample seed data based on the specification
 export const seedEngineeringLevels: CreateEngineeringLevelInput[] = [
@@ -137,9 +139,29 @@ export const seedLevelCriteria: CreateLevelCriterionInput[] = [
 ];
 
 export async function seedDatabase(): Promise<void> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is seeding the database with initial engineering job matrix data.
-    // Should create all engineering levels and their associated criteria from the sample data above.
-    // In a real implementation, this would parse the full spreadsheet data and populate the database.
-    console.log('Seeding database with initial job matrix data...');
+    try {
+        console.log('Seeding database with initial job matrix data...');
+
+        // Insert engineering levels first (parent records)
+        for (const level of seedEngineeringLevels) {
+            await db.insert(engineeringLevelsTable)
+                .values(level)
+                .execute();
+        }
+
+        console.log(`Inserted ${seedEngineeringLevels.length} engineering levels`);
+
+        // Insert level criteria (child records with foreign keys)
+        for (const criterion of seedLevelCriteria) {
+            await db.insert(levelCriteriaTable)
+                .values(criterion)
+                .execute();
+        }
+
+        console.log(`Inserted ${seedLevelCriteria.length} level criteria`);
+        console.log('Database seeding completed successfully');
+    } catch (error) {
+        console.error('Database seeding failed:', error);
+        throw error;
+    }
 }
